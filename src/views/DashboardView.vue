@@ -4,6 +4,7 @@ import { RouterLink, useRouter } from 'vue-router'
 import { useAppStore } from '../stores/app'
 import { money } from '../utils/format'
 import BaseDialog from '../components/BaseDialog.vue'
+import Icon from '../components/ui/Icon.vue'
 const store = useAppStore(); const router = useRouter()
 const todayTotal = computed(() => store.data.sessions.filter(s => s.openedAt.slice(0, 10) === new Date().toISOString().slice(0, 10)).flatMap(s => s.orders).flatMap(o => o.lines).reduce((sum, l) => sum + l.total, 0))
 const opening = ref(false)
@@ -23,13 +24,32 @@ async function confirmStart() {
   <section class="page hero-page">
     <p class="eyebrow">ระบบขายและบัญชี • ใช้งานออฟไลน์</p><h1>พร้อมขายวันนี้</h1>
     <div class="stat-card"><span>ยอดขายวันนี้</span><strong>{{ money(todayTotal) }}</strong></div>
-    <button class="primary giant" @click="start">{{ store.activeSession ? 'กลับไปขาย ' + store.activeSession.name : '＋ เริ่มขายวันนี้' }}</button>
+    <button class="primary giant" @click="start">
+      <Icon v-if="!store.activeSession" name="Plus" :size="24" />
+      <Icon v-else name="ArrowLeft" :size="24" />
+      {{ store.activeSession ? 'กลับไปขาย ' + store.activeSession.name : 'เริ่มขายวันนี้' }}
+    </button>
     <div class="grid-actions">
-      <RouterLink to="/manage/products" class="action">📦<span>สินค้า</span></RouterLink>
-      <RouterLink to="/manage/categories" class="action">🏷️<span>หมวดหมู่</span></RouterLink>
-      <RouterLink to="/manage/customers" class="action">👥<span>ลูกค้า</span></RouterLink>
-      <RouterLink to="/reports" class="action">📈<span>สรุปยอด</span></RouterLink>
-      <RouterLink to="/sales/history" class="action">🕘<span>ประวัติ</span></RouterLink>
+      <RouterLink to="/manage/products" class="action">
+        <Icon name="Package" :size="32" />
+        <span>สินค้า</span>
+      </RouterLink>
+      <RouterLink to="/manage/categories" class="action">
+        <Icon name="Tag" :size="32" />
+        <span>หมวดหมู่</span>
+      </RouterLink>
+      <RouterLink to="/manage/customers" class="action">
+        <Icon name="Users" :size="32" />
+        <span>ลูกค้า</span>
+      </RouterLink>
+      <RouterLink to="/reports" class="action">
+        <Icon name="BarChart3" :size="32" />
+        <span>สรุปยอด</span>
+      </RouterLink>
+      <RouterLink to="/sales/history" class="action">
+        <Icon name="Clock" :size="32" />
+        <span>ประวัติ</span>
+      </RouterLink>
     </div>
     <BaseDialog title="เริ่มขายวันนี้" :open="opening" @close="opening = false">
       <p class="dialog-description">กรอกจำนวนหมูและน้ำหนักเฉลี่ยก่อนเริ่มขาย เพื่อใช้ติดตามสต็อกของวันนี้</p>

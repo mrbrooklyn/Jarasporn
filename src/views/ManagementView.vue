@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { useAppStore } from '../stores/app'
 import { money } from '../utils/format'
 import BaseDialog from '../components/BaseDialog.vue'
+import Icon from '../components/ui/Icon.vue'
 
 const store = useAppStore()
 const route = useRoute()
@@ -85,11 +86,11 @@ async function updateSpecialPrice(productId: string, event: Event) {
 
 <template>
   <section class="page">
-    <div class="title-row"><h1>{{ title }}</h1><button class="primary" @click="edit()">＋ เพิ่ม</button></div>
+    <div class="title-row"><h1>{{ title }}</h1><button class="primary" @click="edit()"><Icon name="Plus" :size="18" /> เพิ่ม</button></div>
     <article v-for="item in items" :key="item.id" class="list-card" @click="edit(item)">
       <img v-if="itemImage(item)" class="product-thumb" :src="itemImage(item)" :alt="item.name">
       <div class="order-number">#{{ item.displayOrder }}</div><div class="list-main"><strong>{{ item.name }}</strong><small v-if="itemSubtitle(item)">{{ itemSubtitle(item) }}</small></div>
-      <div class="list-actions"><button v-if="kind === 'customers'" class="secondary" @click.stop="openPricing(item.id)">ตั้งราคา</button><button v-if="kind === 'customers'" class="secondary" @click.stop="payment(item)">รับชำระเงิน</button><button class="icon" @click.stop="remove(item.id)">🗑️</button></div>
+      <div class="list-actions"><button v-if="kind === 'customers'" class="secondary" @click.stop="openPricing(item.id)"><Icon name="Tag" :size="16" /> ตั้งราคา</button><button v-if="kind === 'customers'" class="secondary" @click.stop="payment(item)"><Icon name="Download" :size="16" /> รับชำระเงิน</button><button class="icon" @click.stop="remove(item.id)"><Icon name="Trash2" :size="18" /></button></div>
     </article>
     <div v-if="!items.length" class="empty">ยังไม่มี{{ title }}<br>กด “เพิ่ม” เพื่อเริ่มต้น</div>
 
@@ -98,7 +99,7 @@ async function updateSpecialPrice(productId: string, event: Event) {
         <label>ชื่อ<input v-model.trim="form.name" required></label>
         <template v-if="kind === 'products' || kind === 'categories' || kind === 'customers'">
           <label>{{ imageLabel }}<input type="file" accept="image/*" @change="selectImage"></label>
-          <img v-if="form.image" class="product-preview" :src="form.image" :alt="`ตัวอย่าง${imageLabel}`"><button v-if="form.image" class="secondary" type="button" @click="form.image = ''">ลบ{{ imageLabel }}</button>
+          <img v-if="form.image" class="product-preview" :src="form.image" :alt="`ตัวอย่าง${imageLabel}`"><button v-if="form.image" class="secondary" type="button" @click="form.image = ''"><Icon name="X" :size="16" /> ลบ{{ imageLabel }}</button>
         </template>
         <template v-if="kind === 'products'">
           <label>หมวดหมู่<select v-model="form.categoryId" required><option v-for="category in store.data.categories.filter(item => !item.deletedAt)" :key="category.id" :value="category.id">{{ category.name }}</option></select></label>
