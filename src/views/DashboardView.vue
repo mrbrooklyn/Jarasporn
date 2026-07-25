@@ -1,0 +1,48 @@
+<script setup lang="ts">
+import { computed, ref } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
+import { useAppStore } from '../stores/app'
+import { money } from '../utils/format'
+import BaseDialog from '../components/BaseDialog.vue'
+const store = useAppStore(); const router = useRouter()
+const todayTotal = computed(() => store.data.sessions.filter(s => s.openedAt.slice(0, 10) === new Date().toISOString().slice(0, 10)).flatMap(s => s.orders).flatMap(o => o.lines).reduce((sum, l) => sum + l.total, 0))
+const opening = ref(false)
+const totalPigs = ref<number | undefined>()
+const averageWeightKg = ref<number | undefined>()
+const estimatedWeight = computed(() => (totalPigs.value ?? 0) * (averageWeightKg.value ?? 0))
+function start() { if (store.activeSession) return router.push('/sales'); opening.value = true }
+async function confirmStart() {
+  try {
+    await store.createSession(totalPigs.value ?? 0, averageWeightKg.value ?? 0)
+    opening.value = false
+    router.push('/sales')
+  } catch (e) { alert((e as Error).message) }
+}
+</script>
+<template>
+  <section class="page hero-page">
+    <p class="eyebrow">ระบบขายและบัญชี • ใช้งานออฟไลน์</p><h1>พร้อมขายวันนี้</h1>
+    <div class="stat-card"><span>ยอดขายวันนี้</span><strong>{{ money(todayTotal) }}</strong></div>
+    <button class="primary giant" @click="start">{{ store.activeSession ? 'กลับไปขาย ' + store.activeSession.name : '＋ เริ่มขายวันนี้' }}</button>
+    <div class="grid-actions">
+      <RouterLink to="/manage/products" class="action">📦<span>สินค้า</span></RouterLink>
+      <RouterLink to="/manage/categories" class="action">🏷️<span>หมวดหมู่</span></RouterLink>
+      <RouterLink to="/manage/customers" class="action">👥<span>ลูกค้า</span></RouterLink>
+      <RouterLink to="/reports" class="action">📈<span>สรุปยอด</span></RouterLink>
+      <RouterLink to="/sales/history" class="action">🕘<span>ประวัติ</span></RouterLink>
+    </div>
+    <BaseDialog title="เริ่มขายวันนี้" :open="opening" @close="opening = false">
+      <p class="dialog-description">กรอกจำนวนหมูและน้ำหนักเฉลี่ยก่อนเริ่มขาย เพื่อใช้ติดตามสต็อกของวันนี้</p>
+      <form @submit.prevent="confirmStart">
+        <label>จำนวนหมูวันนี้ (ตัว)
+          <input v-model.number="totalPigs" type="number" inputmode="numeric" min="1" step="1" placeholder="เช่น 12" required autofocus>
+        </label>
+        <label>น้ำหนักเฉลี่ยต่อตัว (กิโลกรัม)
+          <input v-model.number="averageWeightKg" type="number" inputmode="decimal" min="0.1" step="0.1" placeholder="เช่น 85.5" required>
+        </label>
+        <div class="estimate" aria-live="polite"><span>น้ำหนักรวมโดยประมาณ</span><strong>{{ estimatedWeight.toLocaleString('th-TH', { maximumFractionDigits: 1 }) }} กก.</strong></div>
+        <button class="primary wide">เริ่มขาย</button>
+      </form>
+    </BaseDialog>
+  </section>
+</template>
