@@ -63,5 +63,20 @@ export class SalesService {
     data.debts.push(record)
     return record
   }
+
+  adjustDebt(data: AppData, customer: { id: string; name: string }, type: 'DEBT' | 'PAYMENT', amount: number, note?: string): DebtRecord {
+    if (amount <= 0 || !Number.isFinite(amount)) throw new Error('กรุณาระบุจำนวนเงินที่มากกว่า 0 บาท')
+    const record: DebtRecord = {
+      id: uid(),
+      createdAt: new Date().toISOString(),
+      customerId: customer.id,
+      customerName: customer.name,
+      amount: type === 'DEBT' ? amount : -amount,
+      type,
+      note: note?.trim() || undefined,
+    }
+    data.debts.push(record)
+    return record
+  }
 }
 export const salesService = new SalesService()

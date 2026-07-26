@@ -1,7 +1,7 @@
 export const uid = () => crypto.randomUUID()
 
 export const money = (amount: number) =>
-  new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 2 }).format(amount)
+  new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 }).format(amount)
 
 export const thaiQuantity = (kg: number) => {
   const whole = Math.floor(kg)

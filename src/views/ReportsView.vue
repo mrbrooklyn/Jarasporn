@@ -5,7 +5,7 @@ import { Capacitor } from '@capacitor/core'
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem'
 import { Share } from '@capacitor/share'
 import { useAppStore } from '../stores/app'
-import { dateThai, money } from '../utils/format'
+import { money } from '../utils/format'
 import Icon from '../components/ui/Icon.vue'
 const store = useAppStore()
 const closed = computed(() => store.data.sessions.filter(s => s.status === 'CLOSED'))
@@ -59,7 +59,6 @@ async function restore(event: Event) { const file = (event.target as HTMLInputEl
 <template>
   <section class="page"><h1>สรุปยอดขาย</h1><div class="stat-card"><span>ยอดขายรวม</span><strong>{{ money(total) }}</strong><small>{{ lines.reduce((s,l)=>s+l.quantity,0).toFixed(1) }} กิโลกรัม • {{ closed.length }} รายการ</small></div>
     <div class="button-stack" style="margin-top: 1rem;"><button class="primary" @click="exportExcel"><Icon name="Download" :size="18" /> ส่งออก Excel</button><button class="secondary" @click="backup"><Icon name="Upload" :size="18" /> สำรองข้อมูล</button><label class="secondary upload"><Icon name="FileText" :size="18" /> กู้คืนข้อมูล<input type="file" accept=".json" @change="restore"></label></div>
-    <h2>ประวัติหนี้</h2><article v-for="debt in store.data.debts" class="list-card"><div><strong :class="debt.amount > 0 ? 'debt' : 'payment'">{{ debt.amount > 0 ? '+' : '' }}{{ money(debt.amount) }}</strong><small>{{ debt.type === 'DEBT' ? 'เพิ่มหนี้' : debt.type === 'PAYMENT' ? 'รับชำระเงิน' : 'ปรับยอด' }} • {{ debt.customerName }}</small><small v-if="debt.sessionName">อ้างอิง {{ debt.sessionName }}</small></div><small>{{ dateThai(debt.createdAt) }}</small></article>
     <h2>รายการขายที่ปิดแล้ว</h2><article v-for="s in closed" class="list-card"><div><strong>{{ s.name }}</strong><small>{{ s.orders.length }} ลูกค้า • {{ s.orders.flatMap(o=>o.lines).length }} รายการ</small></div><strong>{{ money(s.orders.flatMap(o=>o.lines).reduce((a,l)=>a+l.total,0)) }}</strong></article>
   </section>
 </template>

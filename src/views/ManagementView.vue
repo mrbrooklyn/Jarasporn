@@ -2,7 +2,7 @@
 import { computed, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAppStore } from '../stores/app'
-import { money } from '../utils/format'
+import { dateThai, money } from '../utils/format'
 import BaseDialog from '../components/BaseDialog.vue'
 import Icon from '../components/ui/Icon.vue'
 
@@ -14,9 +14,12 @@ const editing = ref<string>()
 const pricingCustomerId = ref<string>()
 const pricingCategoryId = ref('')
 const pricingSearch = ref('')
+const debtCustomerId = ref<string>()
+const debtHistoryCustomerId = ref<string>()
 const masterSearch = ref('')
 const favoritesOnly = ref(false)
 const form = reactive({ name: '', categoryId: '', image: '', defaultPrice: 0, phone: '', notes: '', active: true, displayOrder: 0 })
+const debtForm = reactive({ type: 'PAYMENT' as 'DEBT' | 'PAYMENT', amount: undefined as number | undefined, note: '' })
 const title = computed(() => ({ products: 'สินค้า', categories: 'หมวดหมู่สินค้า', customers: 'ลูกค้า' }[kind.value] ?? 'จัดการข้อมูล'))
 const items = computed(() => {
   const records = kind.value === 'products' ? store.data.products : kind.value === 'categories' ? store.data.categories : store.data.customers
@@ -31,6 +34,11 @@ const items = computed(() => {
     })
 })
 const pricingCustomer = computed(() => store.data.customers.find(customer => customer.id === pricingCustomerId.value))
+const debtCustomer = computed(() => store.data.customers.find(customer => customer.id === debtCustomerId.value))
+const debtHistoryCustomer = computed(() => store.data.customers.find(customer => customer.id === debtHistoryCustomerId.value))
+const debtTransactions = computed(() => store.data.debts
+  .filter(debt => debt.customerId === debtHistoryCustomerId.value)
+  .sort((a, b) => b.createdAt.localeCompare(a.createdAt)))
 const activeProducts = computed(() => store.data.products.filter(product => product.active && !product.deletedAt))
 const pricedProducts = computed(() => activeProducts.value.filter(product =>
   (!pricingCategoryId.value || product.categoryId === pricingCategoryId.value) &&
@@ -58,9 +66,17 @@ async function remove(id: string) {
     else await store.deleteCustomer(id)
   } catch (error) { alert((error as Error).message) }
 }
-async function payment(item: { id: string; name: string }) {
-  const value = prompt(`รับชำระเงินจาก ${item.name} (บาท)`)
-  if (value) try { await store.pay(item.id, Number(value)) } catch (error) { alert((error as Error).message) }
+function openDebtDialog(customerId: string) {
+  debtCustomerId.value = customerId
+  Object.assign(debtForm, { type: 'PAYMENT', amount: undefined, note: '' })
+}
+function openDebtHistory(customerId: string) { debtHistoryCustomerId.value = customerId }
+async function submitDebtAdjustment() {
+  if (!debtCustomerId.value) return
+  try {
+    await store.adjustDebt(debtCustomerId.value, debtForm.type, debtForm.amount ?? 0, debtForm.note)
+    debtCustomerId.value = undefined
+  } catch (error) { alert((error as Error).message) }
 }
 async function toggleFavorite(id: string) {
   try { await store.toggleCustomerFavorite(id) } catch (error) { alert((error as Error).message) }
@@ -74,10 +90,10 @@ function selectImage(event: Event) {
   reader.readAsDataURL(file)
 }
 function itemImage(item: { image?: string; photo?: string }) { return item.image ?? item.photo }
-function isFavorite(item: { favorite?: boolean }) { return Boolean(item.favorite) }
+function isFavorite(item: { id: string; favorite?: boolean }) { return Boolean(item.favorite) }
 function itemSubtitle(item: { id: string; defaultPrice?: number; phone?: string }) {
   if (kind.value === 'products') return `${money(item.defaultPrice ?? 0)} / กก.`
-  if (kind.value === 'customers') return `${item.phone || 'ไม่มีเบอร์โทร'} • ค้างชำระ ${money(store.outstanding(item.id))}`
+  if (kind.value === 'customers') return `ค้างชำระ ${money(store.outstanding(item.id))}`
   return ''
 }
 const imageLabel = computed(() => kind.value === 'products' ? 'รูปสินค้า' : kind.value === 'categories' ? 'รูปหมวดหมู่' : 'รูปลูกค้า')
@@ -105,7 +121,7 @@ async function updateSpecialPrice(productId: string, event: Event) {
     <article v-for="item in items" :key="item.id" class="list-card" @click="edit(item)">
       <img v-if="itemImage(item)" class="product-thumb" :src="itemImage(item)" :alt="item.name">
       <div class="order-number">#{{ item.displayOrder }}</div><div class="list-main"><strong>{{ item.name }}</strong><small v-if="itemSubtitle(item)">{{ itemSubtitle(item) }}</small></div>
-      <div class="list-actions"><button v-if="kind === 'customers'" class="favorite-toggle" :class="{ selected: isFavorite(item) }" :aria-label="isFavorite(item) ? 'ยกเลิกรายการโปรด' : 'เพิ่มรายการโปรด'" @click.stop="toggleFavorite(item.id)"><Icon name="Star" :size="18" /></button><button v-if="kind === 'customers'" class="secondary" @click.stop="openPricing(item.id)"><Icon name="Tag" :size="16" /> ตั้งราคา</button><button v-if="kind === 'customers'" class="secondary" @click.stop="payment(item)"><Icon name="Download" :size="16" /> รับชำระเงิน</button><button class="icon" @click.stop="remove(item.id)"><Icon name="Trash2" :size="18" /></button></div>
+      <div class="list-actions"><button v-if="kind === 'customers'" class="favorite-toggle" :class="{ selected: isFavorite(item) }" :aria-label="isFavorite(item) ? 'ยกเลิกรายการโปรด' : 'เพิ่มรายการโปรด'" @click.stop="toggleFavorite(item.id)"><Icon name="Star" :size="18" /></button><button v-if="kind === 'customers'" class="secondary" @click.stop="openPricing(item.id)"><Icon name="Tag" :size="16" /> ตั้งราคา</button><button v-if="kind === 'customers'" class="secondary" @click.stop="openDebtDialog(item.id)"><Icon name="FileText" :size="16" /> ปรับหนี้</button><button v-if="kind === 'customers'" class="secondary" @click.stop="openDebtHistory(item.id)"><Icon name="Clock" :size="16" /> รายการหนี้</button><button class="icon" @click.stop="remove(item.id)"><Icon name="Trash2" :size="18" /></button></div>
     </article>
     <div v-if="!items.length" class="empty">ยังไม่มี{{ title }}<br>กด “เพิ่ม” เพื่อเริ่มต้น</div>
 
@@ -131,6 +147,23 @@ async function updateSpecialPrice(productId: string, event: Event) {
       <div class="category-filters" aria-label="กรองตามหมวดหมู่"><button :class="{ selected: !pricingCategoryId }" @click="pricingCategoryId = ''">ทั้งหมด</button><button v-for="category in store.data.categories.filter(item => item.active && !item.deletedAt)" :key="category.id" :class="{ selected: pricingCategoryId === category.id }" @click="pricingCategoryId = category.id"><img v-if="category.image" class="category-thumb" :src="category.image" :alt="category.name"><span>{{ category.name }}</span></button></div>
       <article v-for="product in pricedProducts" :key="product.id" class="price-row"><img v-if="product.image" class="product-thumb" :src="product.image" :alt="product.name"><div><strong>{{ product.name }}</strong><small>ราคาปกติ {{ money(product.defaultPrice) }} / กก.</small></div><label>ราคาพิเศษ<input :value="specialPrice(product.id) ?? ''" type="number" inputmode="decimal" min="0" step=".01" placeholder="ปกติ" @change="updateSpecialPrice(product.id, $event)"></label></article>
       <p v-if="!pricedProducts.length" class="history-empty">ไม่มีสินค้าในหมวดหมู่นี้</p>
+    </BaseDialog>
+
+    <BaseDialog :title="`ปรับหนี้: ${debtCustomer?.name ?? ''}`" :open="Boolean(debtCustomer)" @close="debtCustomerId = undefined">
+      <p class="dialog-description">เลือกประเภทรายการ ระบุจำนวนเงิน และใส่รายละเอียดเพิ่มเติมได้ตามต้องการ</p>
+      <form @submit.prevent="submitDebtAdjustment">
+        <div class="debt-type-options"><button type="button" :class="{ selected: debtForm.type === 'DEBT' }" @click="debtForm.type = 'DEBT'">＋ เพิ่มหนี้</button><button type="button" :class="{ selected: debtForm.type === 'PAYMENT' }" @click="debtForm.type = 'PAYMENT'">− รับชำระเงิน</button></div>
+        <label>จำนวนเงิน (บาท)<input v-model.number="debtForm.amount" type="number" inputmode="decimal" min="0.01" step=".01" placeholder="0.00" required></label>
+        <label>รายละเอียด (ไม่บังคับ)<textarea v-model.trim="debtForm.note" placeholder="เช่น ค่าขนส่ง, ชำระเงินสด"></textarea></label>
+        <button class="primary wide">{{ debtForm.type === 'DEBT' ? 'บันทึกเพิ่มหนี้' : 'บันทึกรับชำระเงิน' }}</button>
+      </form>
+    </BaseDialog>
+
+    <BaseDialog :title="`รายการหนี้: ${debtHistoryCustomer?.name ?? ''}`" :open="Boolean(debtHistoryCustomer)" @close="debtHistoryCustomerId = undefined">
+      <article v-for="debt in debtTransactions" :key="debt.id" class="debt-transaction">
+        <div><strong :class="debt.amount > 0 ? 'debt' : 'payment'">{{ debt.amount > 0 ? '+' : '' }}{{ money(debt.amount) }}</strong><small>{{ debt.type === 'DEBT' ? 'เพิ่มหนี้' : debt.type === 'PAYMENT' ? 'รับชำระเงิน' : 'ปรับยอด' }}</small><small v-if="debt.note">{{ debt.note }}</small><small v-if="debt.sessionName">อ้างอิง {{ debt.sessionName }}</small></div><small>{{ dateThai(debt.createdAt) }}</small>
+      </article>
+      <div v-if="!debtTransactions.length" class="empty">ยังไม่มีรายการหนี้ของลูกค้ารายนี้</div>
     </BaseDialog>
   </section>
 </template>

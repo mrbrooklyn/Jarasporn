@@ -1044,6 +1044,50 @@ textarea {
   padding: 7px;
 }
 
+.debt-type-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 4px 0 16px;
+}
+
+.debt-type-options button {
+  color: var(--muted);
+  background: var(--card);
+  border: 1px solid var(--line);
+}
+
+.debt-type-options button.selected:first-child {
+  color: #fff;
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+.debt-type-options button.selected:last-child {
+  color: #fff;
+  background: var(--brand);
+  border-color: var(--brand);
+}
+
+.debt-transaction {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.debt-transaction > div {
+  min-width: 0;
+}
+
+.debt-transaction small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+}
+
 .product-summary-overview {
   margin-top: 20px;
   padding: 16px;
