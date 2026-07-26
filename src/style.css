@@ -277,6 +277,16 @@ h3 {
   border-color: var(--danger);
 }
 
+.hold-cancel {
+  position: relative;
+  overflow: hidden;
+  color: var(--danger);
+  font-size: 12px;
+  user-select: none;
+  background: linear-gradient(90deg, #f6cfcf var(--hold-progress, 0%), var(--soft) var(--hold-progress, 0%));
+  border: 1px solid #e3a0a0;
+}
+
 .icon {
   min-height: 36px;
   min-width: 36px;
@@ -981,4 +991,112 @@ textarea {
   .list-card {
     break-inside: avoid;
   }
+}
+
+.master-toolbar {
+  display: flex;
+  gap: 10px;
+  margin: 0 0 14px;
+}
+
+.master-search {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 0 12px;
+  color: var(--muted);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.master-search input {
+  min-width: 0;
+  margin: 0;
+  padding: 11px 0;
+  background: transparent;
+  border: 0;
+}
+
+.favorite-filter,
+.favorite-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  color: var(--muted);
+  background: var(--card);
+  border: 1px solid var(--line);
+}
+
+.favorite-filter.selected,
+.favorite-toggle.selected {
+  color: #a96800;
+  background: #fff0bf;
+  border-color: #f0bd4e;
+}
+
+.favorite-toggle {
+  min-width: 38px;
+  min-height: 38px;
+  padding: 7px;
+}
+
+.product-summary-overview {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--soft);
+  border: 2px solid var(--brand-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.summary-item.clickable {
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.summary-item.clickable:hover {
+  transform: translateY(-2px);
+  border-color: var(--brand);
+  background: var(--card);
+  box-shadow: var(--shadow-md);
+}
+
+.product-details-list {
+  margin-top: 12px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  transition: all var(--transition-base);
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-item:hover {
+  background: var(--soft);
+  padding-left: 8px;
+  padding-right: 8px;
+  border-radius: var(--radius-md);
+}
+
+.detail-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.list-actions .secondary.holding {
+  background: var(--danger-light);
+  border-color: var(--danger);
+  color: var(--danger);
 }

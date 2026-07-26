@@ -3,7 +3,7 @@ export type DebtType = 'DEBT' | 'PAYMENT' | 'ADJUSTMENT'
 
 export interface Category { id: string; name: string; image?: string; displayOrder: number; active: boolean; deletedAt?: string }
 export interface Product { id: string; name: string; categoryId: string; image?: string; defaultPrice: number; displayOrder: number; active: boolean; deletedAt?: string }
-export interface Customer { id: string; name: string; photo?: string; phone?: string; notes?: string; displayOrder: number; active: boolean; deletedAt?: string }
+export interface Customer { id: string; name: string; photo?: string; phone?: string; notes?: string; favorite?: boolean; displayOrder: number; active: boolean; deletedAt?: string }
 export interface SpecialPrice { customerId: string; productId: string; price: number }
 export interface SaleLine {
   id: string; productId: string; productName: string; productImage?: string; quantity: number; pricePerKg: number; total: number; notes?: string

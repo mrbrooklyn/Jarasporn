@@ -48,6 +48,7 @@ export const useAppStore = defineStore('app', () => {
     const old = data.value.customers.find(c => c.id === id); old ? Object.assign(old, payload) : data.value.customers.push({ ...payload, id: uid() })
   }) }
   async function deleteCustomer(id: string) { await mutate(() => { const item = data.value.customers.find(c => c.id === id); if (item) item.deletedAt = new Date().toISOString() }) }
+  async function toggleCustomerFavorite(id: string) { await mutate(() => { const item = data.value.customers.find(customer => customer.id === id); if (!item) throw new Error('ไม่พบลูกค้า'); item.favorite = !item.favorite }) }
   async function setSpecialPrice(price: SpecialPrice) { await mutate(() => { const old = data.value.specialPrices.find(p => p.customerId === price.customerId && p.productId === price.productId); old ? old.price = price.price : data.value.specialPrices.push(price) }) }
   const priceFor = (customerId: string, product: Product) => data.value.specialPrices.find(p => p.customerId === customerId && p.productId === product.id)?.price ?? product.defaultPrice
   async function addCustomer(customerId: string) { await mutate(() => { const c = data.value.customers.find(x => x.id === customerId); if (!activeSession.value || !c) throw new Error('ไม่พบรายการขายหรือลูกค้า'); salesService.addCustomer(activeSession.value, c) }) }
@@ -58,8 +59,14 @@ export const useAppStore = defineStore('app', () => {
   async function closeOrder(orderId: string) { await mutate(() => { const s = activeSession.value; const o = s?.orders.find(x => x.id === orderId); if (!s || !o) throw new Error('ไม่พบรายการ'); salesService.closeOrder(data.value, s, o) }) }
   async function reopenOrder(orderId: string) { await mutate(() => { const s = activeSession.value; const o = s?.orders.find(x => x.id === orderId); if (!s || !o) throw new Error('ไม่พบรายการ'); salesService.reopenOrder(data.value, s, o) }) }
   async function closeSession() { await mutate(() => { if (!activeSession.value) return; salesService.closeSession(activeSession.value) }) }
+  async function cancelActiveSession() { await mutate(() => {
+    const session = activeSession.value
+    if (!session) throw new Error('ไม่พบรายการขายที่เปิดอยู่')
+    data.value.debts = data.value.debts.filter(debt => debt.sessionId !== session.id)
+    data.value.sessions = data.value.sessions.filter(item => item.id !== session.id)
+  }) }
   async function pay(customerId: string, amount: number, note?: string) { await mutate(() => { const c = data.value.customers.find(x => x.id === customerId); if (!c) throw new Error('ไม่พบลูกค้า'); salesService.payment(data.value, c, amount, note) }) }
   async function restore(json: string) { await appRepository.restore(json); data.value = await appRepository.initialize() }
-  return { ready, data, activeSession, outstanding, init, createSession, saveCategory, deleteCategory, saveProduct, deleteProduct, saveCustomer, deleteCustomer, setSpecialPrice, priceFor, addCustomer, removeCustomerFromSession, addLine, updateLine, removeLine, closeOrder, reopenOrder, closeSession, pay, persist, restore }
+  return { ready, data, activeSession, outstanding, init, createSession, saveCategory, deleteCategory, saveProduct, deleteProduct, saveCustomer, deleteCustomer, toggleCustomerFavorite, setSpecialPrice, priceFor, addCustomer, removeCustomerFromSession, addLine, updateLine, removeLine, closeOrder, reopenOrder, closeSession, cancelActiveSession, pay, persist, restore }
 })
 function awaitableEmpty() { return { categories: [], products: [], customers: [], specialPrices: [], sessions: [], debts: [] } }

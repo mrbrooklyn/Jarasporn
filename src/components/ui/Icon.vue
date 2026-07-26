@@ -6,7 +6,7 @@ import {
   Upload, Trash2, ArrowLeft, Check, 
   RotateCcw, AlertCircle, ShoppingBasket,
   PiggyBank, TrendingUp, FileText, User,
-  Sun, Moon, Home, ArrowRight
+  Sun, Moon, Home, ArrowRight, Star
 } from 'lucide-vue-next'
 
 const icons: Record<string, any> = {
@@ -15,7 +15,7 @@ const icons: Record<string, any> = {
   Upload, Trash2, ArrowLeft, ArrowRight, Check,
   RotateCcw, AlertCircle, ShoppingBasket,
   PiggyBank, TrendingUp, FileText, User,
-  Sun, Moon, Home
+  Sun, Moon, Home, Star
 }
 
 interface Props {

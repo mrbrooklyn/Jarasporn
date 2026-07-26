@@ -14,11 +14,21 @@ const editing = ref<string>()
 const pricingCustomerId = ref<string>()
 const pricingCategoryId = ref('')
 const pricingSearch = ref('')
+const masterSearch = ref('')
+const favoritesOnly = ref(false)
 const form = reactive({ name: '', categoryId: '', image: '', defaultPrice: 0, phone: '', notes: '', active: true, displayOrder: 0 })
 const title = computed(() => ({ products: 'สินค้า', categories: 'หมวดหมู่สินค้า', customers: 'ลูกค้า' }[kind.value] ?? 'จัดการข้อมูล'))
 const items = computed(() => {
   const records = kind.value === 'products' ? store.data.products : kind.value === 'categories' ? store.data.categories : store.data.customers
-  return records.filter(item => !item.deletedAt).sort((a, b) => a.displayOrder - b.displayOrder || a.name.localeCompare(b.name, 'th'))
+  const keyword = masterSearch.value.trim()
+  return records
+    .filter(item => !item.deletedAt)
+    .filter(item => !keyword || item.name.includes(keyword) || ('phone' in item && item.phone?.includes(keyword)))
+    .filter(item => kind.value !== 'customers' || !favoritesOnly.value || ('favorite' in item && item.favorite))
+    .sort((a, b) => {
+      const favoriteDifference = Number('favorite' in b && Boolean(b.favorite)) - Number('favorite' in a && Boolean(a.favorite))
+      return favoriteDifference || a.displayOrder - b.displayOrder || a.name.localeCompare(b.name, 'th')
+    })
 })
 const pricingCustomer = computed(() => store.data.customers.find(customer => customer.id === pricingCustomerId.value))
 const activeProducts = computed(() => store.data.products.filter(product => product.active && !product.deletedAt))
@@ -52,6 +62,9 @@ async function payment(item: { id: string; name: string }) {
   const value = prompt(`รับชำระเงินจาก ${item.name} (บาท)`)
   if (value) try { await store.pay(item.id, Number(value)) } catch (error) { alert((error as Error).message) }
 }
+async function toggleFavorite(id: string) {
+  try { await store.toggleCustomerFavorite(id) } catch (error) { alert((error as Error).message) }
+}
 function selectImage(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0]
   if (!file) return
@@ -61,6 +74,7 @@ function selectImage(event: Event) {
   reader.readAsDataURL(file)
 }
 function itemImage(item: { image?: string; photo?: string }) { return item.image ?? item.photo }
+function isFavorite(item: { favorite?: boolean }) { return Boolean(item.favorite) }
 function itemSubtitle(item: { id: string; defaultPrice?: number; phone?: string }) {
   if (kind.value === 'products') return `${money(item.defaultPrice ?? 0)} / กก.`
   if (kind.value === 'customers') return `${item.phone || 'ไม่มีเบอร์โทร'} • ค้างชำระ ${money(store.outstanding(item.id))}`
@@ -87,10 +101,11 @@ async function updateSpecialPrice(productId: string, event: Event) {
 <template>
   <section class="page">
     <div class="title-row"><h1>{{ title }}</h1><button class="primary" @click="edit()"><Icon name="Plus" :size="18" /> เพิ่ม</button></div>
+    <div class="master-toolbar"><label class="master-search"><Icon name="Search" :size="18" /><input v-model.trim="masterSearch" :placeholder="`ค้นหา${title}`"></label><button v-if="kind === 'customers'" class="favorite-filter" :class="{ selected: favoritesOnly }" @click="favoritesOnly = !favoritesOnly"><Icon name="Star" :size="18" /> รายการโปรด</button></div>
     <article v-for="item in items" :key="item.id" class="list-card" @click="edit(item)">
       <img v-if="itemImage(item)" class="product-thumb" :src="itemImage(item)" :alt="item.name">
       <div class="order-number">#{{ item.displayOrder }}</div><div class="list-main"><strong>{{ item.name }}</strong><small v-if="itemSubtitle(item)">{{ itemSubtitle(item) }}</small></div>
-      <div class="list-actions"><button v-if="kind === 'customers'" class="secondary" @click.stop="openPricing(item.id)"><Icon name="Tag" :size="16" /> ตั้งราคา</button><button v-if="kind === 'customers'" class="secondary" @click.stop="payment(item)"><Icon name="Download" :size="16" /> รับชำระเงิน</button><button class="icon" @click.stop="remove(item.id)"><Icon name="Trash2" :size="18" /></button></div>
+      <div class="list-actions"><button v-if="kind === 'customers'" class="favorite-toggle" :class="{ selected: isFavorite(item) }" :aria-label="isFavorite(item) ? 'ยกเลิกรายการโปรด' : 'เพิ่มรายการโปรด'" @click.stop="toggleFavorite(item.id)"><Icon name="Star" :size="18" /></button><button v-if="kind === 'customers'" class="secondary" @click.stop="openPricing(item.id)"><Icon name="Tag" :size="16" /> ตั้งราคา</button><button v-if="kind === 'customers'" class="secondary" @click.stop="payment(item)"><Icon name="Download" :size="16" /> รับชำระเงิน</button><button class="icon" @click.stop="remove(item.id)"><Icon name="Trash2" :size="18" /></button></div>
     </article>
     <div v-if="!items.length" class="empty">ยังไม่มี{{ title }}<br>กด “เพิ่ม” เพื่อเริ่มต้น</div>
 
