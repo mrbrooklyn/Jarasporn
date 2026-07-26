@@ -9,7 +9,13 @@ import { dateThai, money } from '../utils/format'
 import Icon from '../components/ui/Icon.vue'
 const store = useAppStore()
 const closed = computed(() => store.data.sessions.filter(s => s.status === 'CLOSED'))
-const lines = computed(() => closed.value.flatMap(s => s.orders.flatMap(o => o.lines.map(l => ({ session: s, order: o, ...l }))))))
+const lines = computed(() =>
+  closed.value.flatMap(session =>
+    session.orders.flatMap(order =>
+      order.lines.map(line => ({ session, order, ...line })),
+    ),
+  ),
+)
 const total = computed(() => lines.value.reduce((sum,l) => sum + l.total, 0))
 function exportExcel() {
   const rows = lines.value.map(l => ({ 'เลขรายการ': l.session.name, 'วันที่': l.session.openedAt, 'ลูกค้า': l.order.customerName, 'สินค้า': l.productName, 'จำนวน (กก.)': l.quantity, 'ราคา/กก.': l.pricePerKg, 'รวม': l.total, 'ยอดบิล': l.order.lines.reduce((s,x)=>s+x.total,0), 'สถานะ': 'ค้างชำระ', 'ยอดคงค้าง': store.outstanding(l.order.customerId) }))

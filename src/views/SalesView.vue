@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useAppStore } from '../stores/app'
 import { money, thaiQuantity } from '../utils/format'
+import { shareReceiptPdf } from '../utils/receipt'
 import BaseDialog from '../components/BaseDialog.vue'
 import Icon from '../components/ui/Icon.vue'
 
@@ -45,7 +46,10 @@ async function confirmRemoveCustomer(orderId: string, customerName: string) {
     if (activeOrderId.value === orderId) activeOrderId.value = session.value?.orders[0]?.id ?? ''
   } catch (error) { alert((error as Error).message) }
 }
-function printReceipt() { window.print() }
+async function printReceipt() {
+  if (!session.value || !activeOrder.value) return
+  try { await shareReceiptPdf(session.value, activeOrder.value) } catch (error) { alert(`สร้างใบเสร็จไม่สำเร็จ: ${(error as Error).message}`) }
+}
 </script>
 
 <template>

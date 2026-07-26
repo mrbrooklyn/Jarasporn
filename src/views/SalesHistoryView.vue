@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import type { SalesSession } from '../types/domain'
 import { useAppStore } from '../stores/app'
 import { dateThai, money, thaiQuantity } from '../utils/format'
+import { shareSessionReceiptPdf } from '../utils/receipt'
 import BaseDialog from '../components/BaseDialog.vue'
 import Icon from '../components/ui/Icon.vue'
 
@@ -11,7 +12,10 @@ const selected = ref<SalesSession>()
 const sessions = computed(() => store.data.sessions.filter(session => session.status === 'CLOSED').sort((a, b) => b.openedAt.localeCompare(a.openedAt)))
 function total(session: SalesSession) { return session.orders.flatMap(order => order.lines).reduce((sum, line) => sum + line.total, 0) }
 function quantity(session: SalesSession) { return session.orders.flatMap(order => order.lines).reduce((sum, line) => sum + line.quantity, 0) }
-function printReceipt() { window.print() }
+async function printReceipt() {
+  if (!selected.value) return
+  try { await shareSessionReceiptPdf(selected.value) } catch (error) { alert(`สร้างใบเสร็จไม่สำเร็จ: ${(error as Error).message}`) }
+}
 </script>
 <template>
   <section class="page">

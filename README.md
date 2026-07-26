@@ -79,10 +79,7 @@ android/app/build/outputs/apk/debug/app-debug.apk
 
 Build และ sync ไฟล์เว็บก่อน:
 
-```powershell
-npm run cap:sync
-npx cap open android
-```
+
 
 จากนั้นสร้าง debug APK:
 
@@ -140,3 +137,14 @@ npm run cap:sync
 | `npm run cap:sync` | build เว็บและ copy ไปยัง Android |
 | `npm run android` | sync และเปิด Android Studio |
 
+## Run
+```bash
+npm install
+npx run dev
+```
+
+## Build
+```bash
+npm run cap:sync
+npx cap open android
+```
