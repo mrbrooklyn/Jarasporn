@@ -67,7 +67,11 @@ export const useAppStore = defineStore('app', () => {
   }) }
   async function pay(customerId: string, amount: number, note?: string) { await mutate(() => { const c = data.value.customers.find(x => x.id === customerId); if (!c) throw new Error('ไม่พบลูกค้า'); salesService.payment(data.value, c, amount, note) }) }
   async function adjustDebt(customerId: string, type: 'DEBT' | 'PAYMENT', amount: number, note?: string) { await mutate(() => { const customer = data.value.customers.find(item => item.id === customerId); if (!customer) throw new Error('ไม่พบลูกค้า'); salesService.adjustDebt(data.value, customer, type, amount, note) }) }
+  async function resetSalesData() { await mutate(() => {
+    data.value.sessions = []
+    data.value.debts = []
+  }) }
   async function restore(json: string) { await appRepository.restore(json); data.value = await appRepository.initialize() }
-  return { ready, data, activeSession, outstanding, init, createSession, saveCategory, deleteCategory, saveProduct, deleteProduct, saveCustomer, deleteCustomer, toggleCustomerFavorite, setSpecialPrice, priceFor, addCustomer, removeCustomerFromSession, addLine, updateLine, removeLine, closeOrder, reopenOrder, closeSession, cancelActiveSession, pay, adjustDebt, persist, restore }
+  return { ready, data, activeSession, outstanding, init, createSession, saveCategory, deleteCategory, saveProduct, deleteProduct, saveCustomer, deleteCustomer, toggleCustomerFavorite, setSpecialPrice, priceFor, addCustomer, removeCustomerFromSession, addLine, removeLine, updateLine, closeOrder, reopenOrder, closeSession, cancelActiveSession, pay, adjustDebt, resetSalesData, persist, restore }
 })
 function awaitableEmpty() { return { categories: [], products: [], customers: [], specialPrices: [], sessions: [], debts: [] } }

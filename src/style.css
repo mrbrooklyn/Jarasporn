@@ -1088,6 +1088,12 @@ textarea {
   color: var(--muted);
 }
 
+.reset-sales-button {
+  min-height: 48px;
+  margin-top: 18px;
+  font-size: 14px;
+}
+
 .product-summary-overview {
   margin-top: 20px;
   padding: 16px;
