@@ -6,8 +6,9 @@ import type { CustomerOrder, SalesSession } from '../types/domain'
 import { dateThai, money, thaiQuantity } from './format'
 
 const WIDTH = 576
-const PADDING = 28
-const LINE_HEIGHT = 28
+const PADDING = 32
+const LINE_HEIGHT = 34
+const TEAR_SPACE = LINE_HEIGHT * 6
 
 export async function shareReceiptPdf(session: SalesSession, order: CustomerOrder) {
   const canvas = renderReceipt(session, order)
@@ -66,19 +67,19 @@ export async function shareSessionReceiptPdf(session: SalesSession) {
 function renderReceipt(session: SalesSession, order: CustomerOrder) {
   const canvas = document.createElement('canvas')
   canvas.width = WIDTH
-  canvas.height = 2000
+  canvas.height = 8000
   const context = canvas.getContext('2d')!
   let y = PADDING
   context.fillStyle = '#111'
-  context.font = '700 25px "Noto Sans Thai", sans-serif'
+  context.font = '700 36px "Noto Sans Thai", sans-serif'
   context.textAlign = 'center'
   context.fillText('จรัสพรหมูสด', WIDTH / 2, y)
-  y += 36
-  context.font = '18px "Noto Sans Thai", sans-serif'
+  y += 43
+  context.font = '26px "Noto Sans Thai", sans-serif'
   context.fillText('ใบสรุปรายการขาย', WIDTH / 2, y)
-  y += 38
+  y += 46
   context.textAlign = 'left'
-  context.font = '16px "Noto Sans Thai", sans-serif'
+  context.font = '25px "Noto Sans Thai", sans-serif'
   y = drawText(context, `วันที่: ${dateThai(session.openedAt)}`, y)
   y = drawText(context, `เลขที่รายการ: ${session.name}`, y)
   y = drawText(context, `ลูกค้า: ${order.customerName}`, y + 8)
@@ -87,15 +88,15 @@ function renderReceipt(session: SalesSession, order: CustomerOrder) {
   context.setLineDash([5, 4])
   context.beginPath(); context.moveTo(PADDING, y); context.lineTo(WIDTH - PADDING, y); context.stroke()
   context.setLineDash([])
-  y += 28
+  y += 34
 
   for (const line of order.lines) {
-    context.font = '700 18px "Noto Sans Thai", sans-serif'
+    context.font = '26px "Noto Sans Thai", sans-serif' //700
     y = drawText(context, line.productName, y)
-    context.font = '16px "Noto Sans Thai", sans-serif'
+    context.font = '25px "Noto Sans Thai", sans-serif'
     y = drawText(context, `${thaiQuantity(line.quantity)} × ${money(line.pricePerKg)}`, y)
     context.textAlign = 'right'
-    context.font = '700 17px "Noto Sans Thai", sans-serif'
+    context.font = '26px "Noto Sans Thai", sans-serif' //700
     context.fillText(money(line.total), WIDTH - PADDING, y - LINE_HEIGHT)
     context.textAlign = 'left'
     y += 9
@@ -105,16 +106,18 @@ function renderReceipt(session: SalesSession, order: CustomerOrder) {
   context.setLineDash([5, 4])
   context.beginPath(); context.moveTo(PADDING, y); context.lineTo(WIDTH - PADDING, y); context.stroke()
   context.setLineDash([])
-  y += 35
+  y += 42
   const total = order.lines.reduce((sum, line) => sum + line.total, 0)
-  context.font = '700 21px "Noto Sans Thai", sans-serif'
+  context.font = '700 30px "Noto Sans Thai", sans-serif'
   context.fillText('ยอดรวม', PADDING, y)
   context.textAlign = 'right'
   context.fillText(money(total), WIDTH - PADDING, y)
   context.textAlign = 'center'
-  context.font = '15px "Noto Sans Thai", sans-serif'
-  y += 38
+  context.font = '24px "Noto Sans Thai", sans-serif'
+  y += 46
   context.fillText('ขอบคุณที่ใช้บริการ', WIDTH / 2, y)
+  y += 22 + TEAR_SPACE
+  drawDivider(context, y)
 
   const finalHeight = y + PADDING
   const trimmed = document.createElement('canvas')
@@ -127,59 +130,61 @@ function renderReceipt(session: SalesSession, order: CustomerOrder) {
 function renderSessionReceipt(session: SalesSession) {
   const canvas = document.createElement('canvas')
   canvas.width = WIDTH
-  canvas.height = 12000
+  canvas.height = 30000
   const context = canvas.getContext('2d')!
   let y = PADDING
   context.fillStyle = '#111'
-  context.font = '700 25px "Noto Sans Thai", sans-serif'
+  context.font = '700 36px "Noto Sans Thai", sans-serif'
   context.textAlign = 'center'
   context.fillText('จรัสพรหมูสด', WIDTH / 2, y)
-  y += 36
-  context.font = '18px "Noto Sans Thai", sans-serif'
+  y += 43
+  context.font = '26px "Noto Sans Thai", sans-serif'
   context.fillText('สรุปรายการขายทั้งหมด', WIDTH / 2, y)
-  y += 38
+  y += 46
   context.textAlign = 'left'
-  context.font = '16px "Noto Sans Thai", sans-serif'
+  context.font = '25px "Noto Sans Thai", sans-serif'
   y = drawText(context, `วันที่: ${dateThai(session.openedAt)}`, y)
   y = drawText(context, `เลขที่รายการ: ${session.name}`, y)
   y += 8
 
   for (const order of session.orders) {
     drawDivider(context, y)
-    y += 30
-    context.font = '700 20px "Noto Sans Thai", sans-serif'
+    y += 36
+    context.font = '700 25px "Noto Sans Thai", sans-serif'
     y = drawText(context, `ลูกค้า: ${order.customerName}`, y)
     for (const line of order.lines) {
-      context.font = '700 18px "Noto Sans Thai", sans-serif'
+      context.font = '26px "Noto Sans Thai", sans-serif' //700
       y = drawText(context, line.productName, y)
-      context.font = '16px "Noto Sans Thai", sans-serif'
+      context.font = '25px "Noto Sans Thai", sans-serif'
       y = drawText(context, `${thaiQuantity(line.quantity)} × ${money(line.pricePerKg)}`, y)
       context.textAlign = 'right'
-      context.font = '700 17px "Noto Sans Thai", sans-serif'
+      context.font = '26px "Noto Sans Thai", sans-serif' //700
       context.fillText(money(line.total), WIDTH - PADDING, y - LINE_HEIGHT)
       context.textAlign = 'left'
       y += 9
     }
     const customerTotal = order.lines.reduce((sum, line) => sum + line.total, 0)
-    context.font = '700 17px "Noto Sans Thai", sans-serif'
+    context.font = '700 25px "Noto Sans Thai", sans-serif'
     context.fillText('รวมลูกค้า', PADDING, y)
     context.textAlign = 'right'
     context.fillText(money(customerTotal), WIDTH - PADDING, y)
     context.textAlign = 'left'
-    y += 34
+    y += 42
   }
 
   drawDivider(context, y)
-  y += 35
+  y += 42
   const grandTotal = session.orders.flatMap(order => order.lines).reduce((sum, line) => sum + line.total, 0)
-  context.font = '700 22px "Noto Sans Thai", sans-serif'
+  context.font = '700 30px "Noto Sans Thai", sans-serif'
   context.fillText('ยอดรวมทั้งรายการ', PADDING, y)
   context.textAlign = 'right'
   context.fillText(money(grandTotal), WIDTH - PADDING, y)
   context.textAlign = 'center'
-  context.font = '15px "Noto Sans Thai", sans-serif'
-  y += 38
+  context.font = '24px "Noto Sans Thai", sans-serif'
+  y += 46
   context.fillText('ขอบคุณที่ใช้บริการ', WIDTH / 2, y)
+  y += 22 + TEAR_SPACE
+  drawDivider(context, y)
 
   const trimmed = document.createElement('canvas')
   trimmed.width = WIDTH
