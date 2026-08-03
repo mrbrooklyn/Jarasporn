@@ -22,8 +22,10 @@ export class AppRepository {
 
   async save(data: AppData) {
     const payload = JSON.stringify(data)
-    localStorage.setItem(KEY, payload)
-    if (!Capacitor.isNativePlatform()) return
+    if (!Capacitor.isNativePlatform()) {
+      localStorage.setItem(KEY, payload)
+      return
+    }
     await database.transaction([{
       statement: 'INSERT OR REPLACE INTO app_state (id, payload, updated_at) VALUES (1, ?, ?)',
       values: [payload, new Date().toISOString()],

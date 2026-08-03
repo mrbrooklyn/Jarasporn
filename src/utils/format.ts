@@ -1,7 +1,7 @@
 export const uid = () => crypto.randomUUID()
 
 export const money = (amount: number) =>
-  new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 2 }).format(amount)
+  new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 }).format(amount)
 
 export const thaiQuantity = (kg: number) => {
   const whole = Math.floor(kg)
@@ -17,4 +17,5 @@ export const dateKey = (value = new Date()) => {
   return [String(d.getDate()).padStart(2, '0'), String(d.getMonth() + 1).padStart(2, '0'), d.getFullYear()].join('-')
 }
 
-export const lineTotal = (quantity: number, price: number) => Math.round(quantity * price * 100) / 100
+/** Round each sale line down to a whole baht. */
+export const lineTotal = (quantity: number, price: number) => Math.floor(quantity * price)
