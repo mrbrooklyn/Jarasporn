@@ -3,7 +3,7 @@ import { Directory, Filesystem } from '@capacitor/filesystem'
 import { Share } from '@capacitor/share'
 import { jsPDF } from 'jspdf'
 import type { CustomerOrder, SalesSession } from '../types/domain'
-import { dateThai, money, thaiQuantity } from './format'
+import { dateThai, thaiQuantity } from './format'
 
 const WIDTH = 576
 const PADDING = 32
@@ -94,10 +94,10 @@ function renderReceipt(session: SalesSession, order: CustomerOrder) {
     context.font = '26px "Noto Sans Thai", sans-serif' //700
     y = drawText(context, line.productName, y)
     context.font = '25px "Noto Sans Thai", sans-serif'
-    y = drawText(context, `${thaiQuantity(line.quantity)} × ${money(line.pricePerKg)}`, y)
+    y = drawText(context, `${thaiQuantity(line.quantity)} × ${receiptMoney(line.pricePerKg)}`, y)
     context.textAlign = 'right'
     context.font = '26px "Noto Sans Thai", sans-serif' //700
-    context.fillText(money(line.total), WIDTH - PADDING, y - LINE_HEIGHT)
+    context.fillText(receiptMoney(line.total), WIDTH - PADDING, y - LINE_HEIGHT)
     context.textAlign = 'left'
     y += 9
   }
@@ -111,7 +111,7 @@ function renderReceipt(session: SalesSession, order: CustomerOrder) {
   context.font = '700 30px "Noto Sans Thai", sans-serif'
   context.fillText('ยอดรวม', PADDING, y)
   context.textAlign = 'right'
-  context.fillText(money(total), WIDTH - PADDING, y)
+  context.fillText(receiptMoney(total), WIDTH - PADDING, y)
   context.textAlign = 'center'
   context.font = '24px "Noto Sans Thai", sans-serif'
   y += 46
@@ -156,10 +156,10 @@ function renderSessionReceipt(session: SalesSession) {
       context.font = '26px "Noto Sans Thai", sans-serif' //700
       y = drawText(context, line.productName, y)
       context.font = '25px "Noto Sans Thai", sans-serif'
-      y = drawText(context, `${thaiQuantity(line.quantity)} × ${money(line.pricePerKg)}`, y)
+      y = drawText(context, `${thaiQuantity(line.quantity)} × ${receiptMoney(line.pricePerKg)}`, y)
       context.textAlign = 'right'
       context.font = '26px "Noto Sans Thai", sans-serif' //700
-      context.fillText(money(line.total), WIDTH - PADDING, y - LINE_HEIGHT)
+      context.fillText(receiptMoney(line.total), WIDTH - PADDING, y - LINE_HEIGHT)
       context.textAlign = 'left'
       y += 9
     }
@@ -167,7 +167,7 @@ function renderSessionReceipt(session: SalesSession) {
     context.font = '700 25px "Noto Sans Thai", sans-serif'
     context.fillText('รวมลูกค้า', PADDING, y)
     context.textAlign = 'right'
-    context.fillText(money(customerTotal), WIDTH - PADDING, y)
+    context.fillText(receiptMoney(customerTotal), WIDTH - PADDING, y)
     context.textAlign = 'left'
     y += 42
   }
@@ -178,7 +178,7 @@ function renderSessionReceipt(session: SalesSession) {
   context.font = '700 30px "Noto Sans Thai", sans-serif'
   context.fillText('ยอดรวมทั้งรายการ', PADDING, y)
   context.textAlign = 'right'
-  context.fillText(money(grandTotal), WIDTH - PADDING, y)
+  context.fillText(receiptMoney(grandTotal), WIDTH - PADDING, y)
   context.textAlign = 'center'
   context.font = '24px "Noto Sans Thai", sans-serif'
   y += 46
@@ -198,6 +198,10 @@ function drawDivider(context: CanvasRenderingContext2D, y: number) {
   context.setLineDash([5, 4])
   context.beginPath(); context.moveTo(PADDING, y); context.lineTo(WIDTH - PADDING, y); context.stroke()
   context.setLineDash([])
+}
+
+function receiptMoney(amount: number) {
+  return new Intl.NumberFormat('th-TH', { maximumFractionDigits: 0 }).format(amount)
 }
 
 function drawText(context: CanvasRenderingContext2D, text: string, y: number) {
