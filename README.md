@@ -1,150 +1,180 @@
-# จรัสพรหมูสด
+# Jarasporn Fresh Pork (จรัสพรหมูสด)
 
-แอปจัดการการขายและบัญชีสำหรับร้านขายส่งหมู ใช้งานแบบออฟไลน์ ข้อมูลอยู่ในเครื่องด้วย SQLite และสร้างเป็น Android APK ได้
+> [!NOTE]
+> **Proof of Concept (POC)**: This project is a Proof of Concept (POC) application developed for testing and evaluating offline-first sales and accounting management for wholesale pork operations.
 
-## เทคโนโลยี
+An offline-first sales and accounting management application designed for wholesale fresh pork shops. Data is stored locally using SQLite, with support for exporting Excel reports and packaging into an Android APK.
 
-- Vue 3 + Vite + TypeScript
-- Pinia และ Vue Router
-- Capacitor สำหรับ Android
-- `@capacitor-community/sqlite` สำหรับฐานข้อมูลในเครื่อง
-- XLSX สำหรับส่งออกรายงาน Excel
+---
 
-## ความต้องการก่อนเริ่ม
+## Example Interface
 
-ติดตั้งโปรแกรมต่อไปนี้:
+### 1. POS & Sales Order Management
+Touch-friendly sales interface optimized for butcher shop workflows: rapid cut selection, live scale weight calculations, custom customer pricing, and order settling.
 
-1. [Node.js](https://nodejs.org/) เวอร์ชัน LTS
+![POS Sales Interface](./.github/pos-sales-preview.png)
+
+### 2. Operations Dashboard & KPI Monitoring
+Centralized operational dashboard showing daily stock tracking (pigs & total weight), live customer queue, sales metrics, and outstanding balances.
+
+![Dashboard Overview](./.github/dashboard-preview.png)
+
+### 3. Invoice
+
+![Invoice](./.github/invoice-preview.png)
+
+---
+
+## Tech Stack
+
+- **Frontend**: Vue 3 + Vite + TypeScript
+- **State Management & Routing**: Pinia & Vue Router
+- **Mobile Runtime**: Capacitor for Android
+- **Database**: `@capacitor-community/sqlite` (local on-device SQLite database)
+- **Reporting**: XLSX for Excel report export
+
+---
+
+## Prerequisites
+
+Ensure the following prerequisites are installed:
+
+1. [Node.js](https://nodejs.org/) (LTS version recommended)
 2. [Android Studio](https://developer.android.com/studio)
-3. Android SDK Platform และ Android SDK Build-Tools ผ่าน Android Studio
-4. JDK ที่ Android Studio ติดตั้งหรือกำหนดให้ใช้งาน
+3. Android SDK Platform and Android SDK Build-Tools (installed via Android Studio)
+4. JDK (configured with or bundled in Android Studio)
 
-เปิด Android Studio แล้วไปที่ **More Actions → SDK Manager** และตรวจสอบว่าได้ติดตั้ง:
-
-- Android SDK Platform อย่างน้อยหนึ่งเวอร์ชัน
+In Android Studio, navigate to **More Actions → SDK Manager** and verify that the following are installed:
+- At least one Android SDK Platform version
 - Android SDK Build-Tools
 - Android SDK Command-line Tools
 
-## เริ่มต้นใช้งาน
+---
 
-เปิด Terminal ในโฟลเดอร์โครงการ แล้วติดตั้ง dependencies:
+## Getting Started
+
+1. Open a terminal in the project root directory and install dependencies:
 
 ```powershell
 npm install
 ```
 
-สำหรับทดสอบในเว็บเบราว์เซอร์:
+2. Start the local web development server:
 
 ```powershell
 npm run dev
 ```
 
-## เปิดใน Android Studio
+---
 
-ทุกครั้งที่แก้ไขโค้ดเว็บ ให้ build และ sync ไปยังโปรเจกต์ Android ก่อน:
+## Running on Android Studio
+
+Whenever web assets/code are updated, build and synchronize changes to the Android project first:
 
 ```powershell
 npm run cap:sync
 ```
 
-จากนั้นเปิดโปรเจกต์ Android:
+Then open the Android project:
 
 ```powershell
 npm run android
 ```
 
-หรือเปิด Android Studio แล้วเลือก **Open** จากนั้นเลือกโฟลเดอร์:
+*Alternatively, open Android Studio, select **Open**, and browse to the `android/` directory.*
 
-```text
-android
-```
+Wait for Gradle Sync to finish. Select an Android Emulator or a connected physical Android device (with USB Debugging enabled) from the toolbar, then click the ▶ **Run** button to launch and test the app.
 
-รอให้ Gradle Sync ทำงานจนเสร็จ แล้วเลือกอุปกรณ์จำลอง (Emulator) หรือโทรศัพท์ Android ที่เปิด USB Debugging จากแถบด้านบน กดปุ่ม ▶ Run เพื่อทดสอบแอป
+---
 
-## สร้าง APK
+## Building APK
 
-### วิธีผ่าน Android Studio
+### Via Android Studio
 
-1. เปิดโฟลเดอร์ `android` ใน Android Studio
-2. เลือกเมนู **Build → Build Bundle(s) / APK(s) → Build APK(s)**
-3. รอการ build เสร็จ แล้วกด **locate**
+1. Open the `android` folder in Android Studio.
+2. Select **Build → Build Bundle(s) / APK(s) → Build APK(s)** from the top menu.
+3. Once the build completes, click **locate** in the notification popup.
 
-ไฟล์ debug APK จะอยู่ที่:
-
+The debug APK will be generated at:
 ```text
 android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-### วิธีผ่าน Terminal
+### Via Terminal
 
-Build และ sync ไฟล์เว็บก่อน:
+1. Build and sync web assets:
+```powershell
+npm run cap:sync
+```
 
-
-
-จากนั้นสร้าง debug APK:
-
+2. Build the debug APK using Gradle wrapper:
 ```powershell
 cd android
 .\gradlew.bat assembleDebug
 ```
 
-ไฟล์ APK จะอยู่ที่:
-
+The output APK will be located at:
 ```text
 android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-## สร้าง Release APK สำหรับแจกจ่าย
+---
 
-1. ใน Android Studio เปิด **Build → Generate Signed Bundle / APK**
-2. เลือก **APK**
-3. สร้างหรือเลือกไฟล์ Keystore และเก็บรหัสผ่านไว้ในที่ปลอดภัย
-4. เลือก build variant `release`
-5. Build เสร็จแล้วจะได้ signed APK ที่ติดตั้งหรือส่งให้ผู้ใช้งานได้
+## Generating Release APK for Distribution
 
-อย่า commit ไฟล์ Keystore หรือรหัสผ่านลงใน Git repository
+1. In Android Studio, go to **Build → Generate Signed Bundle / APK**.
+2. Select **APK**.
+3. Create a new Keystore or select an existing one (store credentials safely).
+4. Select the `release` build variant.
+5. Finish the build to generate the signed APK ready for installation/distribution.
 
-## ปัญหาที่พบบ่อย
+> [!WARNING]
+> Never commit Keystore files or passwords to the Git repository.
+
+---
+
+## Troubleshooting & FAQ
 
 ### `SDK location not found`
 
-Android SDK ยังไม่ได้ตั้งค่า ให้เปิด Android Studio และทำตามนี้:
+The Android SDK location is not configured in the project. To resolve:
 
-1. ไปที่ **File → Settings → Languages & Frameworks → Android SDK**
-2. คัดลอกตำแหน่ง Android SDK
-3. สร้างไฟล์ `android/local.properties` โดยใส่:
+1. In Android Studio, go to **File → Settings → Languages & Frameworks → Android SDK**.
+2. Copy the Android SDK Location path.
+3. Create an `android/local.properties` file and add:
 
 ```properties
-sdk.dir=C:\\Users\\ชื่อผู้ใช้\\AppData\\Local\\Android\\Sdk
+sdk.dir=C:\\Users\\<YourUsername>\\AppData\\Local\\Android\\Sdk
 ```
+*(Use escaped backslashes `\\` on Windows or the actual path on your machine).*
 
-ใช้ `\\` ใน Windows หรือแก้เป็นตำแหน่ง SDK จริงบนเครื่อง
+### Web code changes are not reflected in the Android app
 
-### โค้ดเว็บไม่อัปเดตในแอป Android
-
-ต้องรันคำสั่งนี้หลังแก้ไขโค้ดทุกครั้ง:
+Run the sync command every time changes are made to the web source code:
 
 ```powershell
 npm run cap:sync
 ```
 
-## คำสั่งที่ใช้บ่อย
+---
 
-| คำสั่ง | ความหมาย |
+## Common Commands Reference
+
+| Command | Description |
 | --- | --- |
-| `npm run dev` | เปิดเว็บสำหรับพัฒนา |
-| `npm run build` | ตรวจสอบ TypeScript และ build เว็บ production |
-| `npm run cap:sync` | build เว็บและ copy ไปยัง Android |
-| `npm run android` | sync และเปิด Android Studio |
+| `npm run dev` | Starts local web development server |
+| `npm run build` | Runs TypeScript checks and builds production web assets |
+| `npm run cap:sync` | Builds web assets and copies them to the Android project |
+| `npm run android` | Syncs assets and opens the project in Android Studio |
 
-## Run
+### Quick Start Cheatsheet
+
 ```bash
+# Install & Run Dev Server
 npm install
-npx run dev
-```
+npm run dev
 
-## Build
-```bash
+# Sync & Open Android
 npm run cap:sync
 npx cap open android
 ```
